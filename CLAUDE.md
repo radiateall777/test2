@@ -30,11 +30,11 @@ Two suites with different requirements:
 
 Async tests use `anyio`, not `pytest-asyncio`. The `anyio_backend` fixture in `tests/conftest.py` pins the backend to asyncio, and test modules set `pytestmark = pytest.mark.anyio`. Note the integration CI workflow installs `pytest-asyncio` instead, which does not match this setup.
 
-## Known broken commands
+## Upstream typing gap
 
-`make lint` sets `PYTHON_FILES=.` and runs `mypy --strict .`, which includes `tests/` and fails on two pre-existing errors there (an unannotated fixture in `conftest.py`, and the untyped dict passed to `ainvoke` in the integration test). Use `mypy --strict src/` directly, which is also what CI runs.
+langgraph 1.0.10 leaves `CompiledStateGraph`'s input/output type variables unresolved unless `StateGraph` is given explicit `input_schema=`/`output_schema=` arguments. Under `mypy --strict` this makes `graph.ainvoke(...)` reject *every* argument type, dict and `State` instance alike — so the call in `tests/integration_tests/test_graph.py` carries a `type: ignore[arg-type]`. Expect the same if you add new `ainvoke`/`invoke` call sites; don't restructure the graph construction just to satisfy the checker.
 
-`ruff check .` passes across the repo.
+Both `ruff check .` and `mypy --strict .` currently pass, so `make lint` works.
 
 ## Graph conventions
 
