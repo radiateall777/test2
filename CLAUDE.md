@@ -6,8 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A LangGraph agent built from the `new-langgraph-project` template. The graph in `src/agent/graph.py` is still the template's single-node placeholder that returns a fixed string — replace it with real logic rather than treating it as working behavior.
 
-`test.py` in the repo root is unrelated to the agent: it's a standalone SICP-style constraint-propagation exercise (Celsius/Fahrenheit conversion). It is not imported by anything and has no tests. See "Known broken commands" below — it breaks the lint targets.
-
 ## Environment
 
 Use the project virtualenv explicitly; there is no activation step in these commands and the global `python` is not the right interpreter:
@@ -34,12 +32,9 @@ Async tests use `anyio`, not `pytest-asyncio`. The `anyio_backend` fixture in `t
 
 ## Known broken commands
 
-Do not trust the Makefile lint targets as-is:
+`make lint` sets `PYTHON_FILES=.` and runs `mypy --strict .`, which includes `tests/` and fails on two pre-existing errors there (an unannotated fixture in `conftest.py`, and the untyped dict passed to `ainvoke` in the integration test). Use `mypy --strict src/` directly, which is also what CI runs.
 
-- `make lint` sets `PYTHON_FILES=.` and runs `mypy --strict .`, which pulls in `test.py` and reports ~91 errors. Use `mypy --strict src/` directly.
-- `ruff check .` reports 16 errors, all in `test.py` (`D103`, `D415`, `T201`). `pyproject.toml` only exempts `tests/*` from the docstring rules, not the root `test.py`.
-
-The second one means **CI on `main` is currently red** — `.github/workflows/unit-tests.yml` runs `ruff check .` across the whole repo. Fixing this is a matter of either exempting or relocating `test.py`, not of changing `src/`.
+`ruff check .` passes across the repo.
 
 ## Graph conventions
 
